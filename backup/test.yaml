@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: postgres-1
+spec:
+  containers:
+  - name: postgres
+    image: postgres:16.0
+    ports:
+    - containerPort: 5432
+      hostPort: 5000
+    env:
+    - name: POSTGRES_USER
+      value: "postgres"
+    - name: POSTGRES_PASSWORD
+      value: "redhat"
+    - name: POSTGRES_DB
+      value: "template1"
+    - name: PGDATA
+      value: "/data"
+    volumeMounts:
+    - name: pgdata-volume
+      mountPath: /data
+    - name: config-volume
+      mountPath: /config
+    - name: archive-volume
+      mountPath: /mnt/server/archive
+    command: ["postgres"]
+    args: ["-c", "config_file=/config/postgresql.conf"]
+  volumes:
+  - name: pgdata-volume
+    hostPath:
+      path: /root/postgres-1/pgdata
+  - name: config-volume
+    hostPath:
+      path: /root/postgres-1/config
+  - name: archive-volume
+    hostPath:
+      path: /root/postgres-1/archive

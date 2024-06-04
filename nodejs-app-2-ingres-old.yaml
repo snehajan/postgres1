@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nodejs-app-ingress
+spec:
+  rules:
+  - host: ubuntu-2.snehajan.com  # Replace with your domain name or external IP
+    http:
+      paths:
+        - backend:
+           serviceName: nodejs-app-2-service
+           servicePort: 1111

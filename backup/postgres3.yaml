@@ -1,0 +1,89 @@
+# postgres-1-pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-1-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /root/postgres-1-1
+---
+# postgres-1-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-1-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+# postgres-1-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-1
+  template:
+    metadata:
+      labels:
+        app: postgres-1
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      containers:
+      - name: postgres-1
+        image: postgres:16.0
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          value: "redhat"
+        - name: POSTGRES_DB
+          value: "template1"
+        - name: PGDATA
+          value: "/data"
+        volumeMounts:
+        - name: pgdata-volume
+          mountPath: /data
+        - name: config-volume
+          mountPath: /config
+        - name: archive-volume
+          mountPath: /mnt/server/archive
+        command: ["postgres"]
+        args: ["-c", "config_file=/root/postgres-1/config/postgresql.conf"]
+      volumes:
+      - name: pgdata-volume
+        hostPath:
+          path: /root/postgres-1/pgdata
+      - name: config-volume
+        hostPath:
+          path: /root/postgres-1/config  # Corrected path to /root/postgres-1/config
+      - name: archive-volume
+        hostPath:
+          path: /root/postgres-1/archive
+---
+# postgres-1-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-1-service
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: postgres-1
+---
+

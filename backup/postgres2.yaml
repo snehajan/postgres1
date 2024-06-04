@@ -1,0 +1,52 @@
+# postgres-1-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-1
+  template:
+    metadata:
+      labels:
+        app: postgres-1
+    spec:
+      securityContext:  # Add securityContext at this level
+        runAsNonRoot: true
+        runAsUser: 999  # Use a non-root user ID here, replace 1000 with an appropriate user ID
+      containers:
+      - name: postgres-1
+        image: postgres:16.0  # Use the appropriate version
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          value: "redhat"
+        - name: POSTGRES_DB
+          value: "template1"
+        - name: PGDATA
+          value: "/data"
+        volumeMounts:
+        - name: pgdata-volume
+          mountPath: /data
+        - name: config-volume
+          mountPath: /config
+        - name: archive-volume
+          mountPath: /mnt/server/archive
+        command: ["postgres"]
+        args: ["-c", "config_file=/config/postgresql.conf"]
+      volumes:
+      - name: pgdata-volume
+        hostPath:
+          path: /root/postgres-1/pgdata
+      - name: config-volume
+        hostPath:
+          path: /root/postgres-1/config
+      - name: archive-volume
+        hostPath:
+          path: /root/postgres-1/archive
+
